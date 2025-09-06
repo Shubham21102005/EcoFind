@@ -3,6 +3,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const cors = require("cors");
 const connectDB = require("./utils/connectDB.js");
 const authRoutes = require("./routes/authRoutes.js");
 const productRoutes = require("./routes/productRoutes.js");
@@ -11,14 +12,26 @@ const chatRoutes = require("./routes/chatRoutes.js");
 dotenv.config();
 const app = express();
 const server = http.createServer(app);
+
+// CORS configuration
+app.use(cors({
+  origin: ["http://localhost:5173", "http://localhost:3000"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 const io = new Server(server, {
-  cors: { origin: "*" } // allow frontend origin
+  cors: { 
+    origin: ["http://localhost:5173", "http://localhost:3000"],
+    methods: ["GET", "POST"]
+  }
 });
 
 app.use(express.json());
-app.use("/auth", authRoutes);
-app.use("/products", productRoutes);
-app.use("/chats", chatRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/chats", chatRoutes);
 
 // --------------------
 // Socket.IO logic
@@ -54,7 +67,7 @@ io.on("connection", (socket) => {
 // --------------------
 // Start server
 // --------------------
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await connectDB();

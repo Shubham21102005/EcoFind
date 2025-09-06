@@ -1,9 +1,53 @@
-import React from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
+import { useAuth } from './AuthContext';
 
-function SocketContext() {
-  return (
-    <div>SocketContext</div>
-  )
-}
+const SocketContext = createContext();
 
-export default SocketContext
+export const SocketProvider = ({ children }) => {
+  const [socket, setSocket] = useState(null);
+  const { token, user } = useAuth();
+
+  useEffect(() => {
+    if (token && user) {
+      const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+        auth: {
+          token,
+        },
+      });
+
+      newSocket.on('connect', () => {
+        console.log('Connected to server');
+      });
+
+      newSocket.on('disconnect', () => {
+        console.log('Disconnected from server');
+      });
+
+      setSocket(newSocket);
+
+      return () => {
+        newSocket.close();
+      };
+    } else {
+      if (socket) {
+        socket.close();
+        setSocket(null);
+      }
+    }
+  }, [token, user]);
+
+  const value = {
+    socket,
+  };
+
+  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
+};
+
+export const useSocket = () => {
+  const context = useContext(SocketContext);
+  if (!context) {
+    throw new Error('useSocket must be used within a SocketProvider');
+  }
+  return context;
+};
