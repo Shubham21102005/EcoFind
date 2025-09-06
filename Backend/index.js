@@ -17,8 +17,8 @@ const io = new Server(server, {
 
 app.use(express.json());
 app.use("/auth", authRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/chats", chatRoutes);
+app.use("/products", productRoutes);
+app.use("/chats", chatRoutes);
 
 // --------------------
 // Socket.IO logic
